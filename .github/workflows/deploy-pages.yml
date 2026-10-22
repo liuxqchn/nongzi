@@ -42,6 +42,24 @@ jobs:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
 
+      # 让备用站也能直接下载 APK：构建失败不阻塞站点发布
+      - name: Build release APK
+        id: apk
+        continue-on-error: true
+        working-directory: android
+        env:
+          WEB_URL: ${{ vars.WEB_URL }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Put APK into site
+        if: steps.apk.outcome == 'success'
+        run: |
+          mkdir -p web/dist
+          cp android/app/build/outputs/apk/release/*.apk web/dist/app-release.apk
+          ls -lh web/dist/app-release.apk
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
