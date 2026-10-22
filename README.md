@@ -148,13 +148,23 @@ cd android
 
 ## 五、上线三步
 
+> 本仓库已经上线，以下就是实际配置：
+>
+> | 项目 | 地址 |
+> | --- | --- |
+> | GitHub 仓库 | <https://github.com/liuxqchn/nongzi> |
+> | H5 线上站点（主） | <https://nongzi.pages.dev> （Cloudflare Pages） |
+> | H5 备用站点 | <https://liuxqchn.github.io/nongzi/> （GitHub Pages，`deploy-pages.yml` 自动发布） |
+> | APK 下载 | <https://nongzi.pages.dev/app-release.apk> |
+> | 仓库变量 `WEB_URL` | `https://nongzi.pages.dev`（APK 打包地址） |
+
 ### 1. 推送到 GitHub
 
 ```bash
 git init
 git add .
 git commit -m "feat: init nongzi catalog & app"
-git remote add origin https://github.com/你的用户名/你的仓库名.git
+git remote add origin git@github.com:liuxqchn/nongzi.git
 git push -u origin main
 ```
 
@@ -170,13 +180,13 @@ git push -u origin main
 
 ### 3. 部署 H5（两种零成本方式）
 
-**A. Cloudflare Pages（拖拽上传，最快）**
+**A. Cloudflare Pages（拖拽上传，最快）—— 当前主站**
 
-Workers & Pages → Create → Pages → **Direct Upload**，把 `nongzi-site` 里的 `dist` 文件夹拖进去即可；之后每次跑完 Actions 重新上传就能更新。
+Workers & Pages → Create → Pages → **Direct Upload**，项目名 `nongzi`，把 `nongzi-site` 里的 `dist` 文件夹拖进去即可，得到 `https://nongzi.pages.dev`；之后每次跑完 Actions 重新上传就能更新。
 
-**B. GitHub Pages（一次配置，自动更新）**
+**B. GitHub Pages（一次配置，自动更新）—— 当前备用站**
 
-仓库 Settings → Pages → Source 选 **GitHub Actions**，`deploy-pages.yml` 会自动发布，地址是 `https://<用户名>.github.io/<仓库名>/`。
+仓库 Settings → Pages → Source 选 **GitHub Actions**，`deploy-pages.yml` 会自动发布到 `https://liuxqchn.github.io/nongzi/`。注意该站挂在仓库子路径下，构建时通过 `VITE_BASE_PATH=/nongzi/` 处理资源前缀。
 
 > 部署完把域名填回 `android/app/build.gradle`（或 CI 的 `webUrl` 参数），再跑一次 Actions 就能生成指向新地址的 APK。
 
