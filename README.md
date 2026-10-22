@@ -161,6 +161,7 @@ cd android
 > | H5 备用站点 | <https://liuxqchn.github.io/nongzi/> （GitHub Pages，`deploy-pages.yml` 自动发布） |
 > | APK 下载 | <https://nongzi.pages.dev/app-release.apk> |
 > | 仓库变量 `WEB_URL` | `https://nongzi.pages.dev`（APK 打包地址） |
+> | 主站发布方式 | 推送到 `main` → Cloudflare Pages 自动构建部署（无需手动上传） |
 
 ### 1. 推送到 GitHub
 
@@ -184,9 +185,16 @@ git push -u origin main
 
 ### 3. 部署 H5（两种零成本方式）
 
-**A. Cloudflare Pages（拖拽上传，最快）—— 当前主站**
+**A. Cloudflare Pages（连 Git，push 即上线）—— 当前主站**
 
-Workers & Pages → Create → Pages → **Direct Upload**，项目名 `nongzi`，把 `nongzi-site` 里的 `dist` 文件夹拖进去即可，得到 `https://nongzi.pages.dev`；之后每次跑完 Actions 重新上传就能更新。
+项目 `nongzi` 已接入 GitHub 仓库，**推代码就自动上线**，不用再拖拽上传：
+
+- Workers & Pages → 项目 `nongzi` → 设置 → 构建 → **Git 存储库 → 连接**，授权 GitHub App（只勾选 `liuxqchn/nongzi` 这一个仓库即可，权限最小化）；
+- 构建配置：根目录 `web`、构建命令 `npm run build`、构建输出目录 `dist`、生产分支 `main`、构建系统版本 3；
+- 构建环境变量 `NODE_VERSION=22`（锁 Node 大版本，避免构建镜像默认值变化导致 Vite 构建失败）；
+- 之后每次 `git push` 到 `main`，Cloudflare 自动拉代码 → 构建 → 发布到 `https://nongzi.pages.dev`；其他分支推送会生成独立的预览部署地址。
+
+> 最早这个项目是拖拽上传建的，**不需要新建项目**：在设置里直接「连接」Git 仓库即可，域名 `nongzi.pages.dev` 保持不变，APK 里写死的地址也不用改。
 
 **B. GitHub Pages（一次配置，自动更新）—— 当前备用站**
 

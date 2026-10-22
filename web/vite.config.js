@@ -21,6 +21,14 @@ export default defineConfig({
     host: '127.0.0.1',
     port: 4173,
   },
+  // 把构建来源的 commit SHA 打进包里，页脚据此显示「构建 <sha>」，
+  // 一眼就能看出线上跑的是哪一次提交（排查自动部署是否生效时很有用）。
+  // Cloudflare Pages 注入 CF_PAGES_COMMIT_SHA，GitHub Actions 注入 GITHUB_SHA。
+  define: {
+    __BUILD_SHA__: JSON.stringify(
+      process.env.CF_PAGES_COMMIT_SHA || process.env.GITHUB_SHA || '',
+    ),
+  },
   build: {
     outDir: 'dist',
     assetsDir: 'assets',

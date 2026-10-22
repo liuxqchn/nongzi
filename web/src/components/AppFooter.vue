@@ -9,6 +9,9 @@ defineProps({
 
 const emit = defineEmits(['open-source', 'reload'])
 
+// 构建时注入的 commit SHA；本地构建或未设置时为空
+const buildSha = typeof __BUILD_SHA__ === 'string' ? __BUILD_SHA__ : ''
+
 // 站点根目录下放了 app-release.apk 才显示「下载 App」入口
 const apkUrl = ref('')
 
@@ -71,6 +74,10 @@ onMounted(async () => {
 
     <p class="mt-3 text-[11px] text-leaf-500">
       农药使用请以产品标签为准，严格遵守剂量与安全间隔期
+    </p>
+
+    <p v-if="buildSha" class="mt-1 text-[11px] text-leaf-400">
+      构建 {{ buildSha.slice(0, 7) }}
     </p>
 
     <button
