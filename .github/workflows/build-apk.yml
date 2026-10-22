@@ -113,3 +113,39 @@ jobs:
           name: nongzi-site
           path: dist
           if-no-files-found: error
+
+  publish-apk:
+    name: Refresh APK in web/public
+    runs-on: ubuntu-latest
+    needs: [build-apk]
+    permissions:
+      # 允许把新构建的 APK 提交回仓库，Cloudflare Pages 会据此重新构建站点
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nongzi-release-apk
+          path: apk
+
+      - name: Put APK into web/public
+        run: |
+          mkdir -p web/public
+          cp apk/*.apk web/public/app-release.apk
+          ls -lh web/public/app-release.apk
+
+      # 用 GITHUB_TOKEN 推送不会再次触发本 workflow，不会产生循环；
+      # 但会触发 Cloudflare Pages 的自动构建，从而把新 APK 发布到线上。
+      - name: Commit refreshed APK
+        run: |
+          if git diff --quiet -- web/public/app-release.apk; then
+            echo "APK 与仓库中的一致，无需提交"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/app-release.apk
+          git commit -m "chore: 更新 web/public 里的 APK 产物"
+          git push origin HEAD:${{ github.ref_name }}

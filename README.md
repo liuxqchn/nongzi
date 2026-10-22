@@ -183,6 +183,8 @@ git push -u origin main
 | `nongzi-web` | H5 静态站点（`web/dist`） |
 | `nongzi-site` | H5 站点 + `app-release.apk`，可直接整包上传到静态托管 |
 
+> 站点里的「下载 App」按钮读的是**仓库里的** `web/public/app-release.apk`——Cloudflare Pages 是直接从仓库构建的，APK 不在库里，那个入口就会消失。`build-apk.yml` 每次编译出新 APK 会自动提交回仓库并触发一次重新部署，不需要手动往站点里传 APK。
+
 ### 3. 部署 H5（两种零成本方式）
 
 **A. Cloudflare Pages（连 Git，push 即上线）—— 当前主站**

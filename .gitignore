@@ -31,6 +31,8 @@ android/keystore.properties
 *.jks
 *.keystore
 
-# 打包好的 APK（体积大，按需放置到 web/public/ 后由 CI 产物提供）
-web/public/app-release.apk
+# 打包好的 APK：主站由 Cloudflare Pages 直接从仓库构建，APK 必须入库，
+# 否则自动构建出来的站点里 /app-release.apk 会 404（CI 每次构建后会自动刷新它）。
+# 只保留发布用的 app-release.apk，其他临时 apk 依旧忽略。
 web/public/*.apk
+!web/public/app-release.apk
