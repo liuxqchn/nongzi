@@ -121,6 +121,13 @@ cd android
 ./gradlew assembleRelease     # 产物：android/app/build/outputs/apk/release/app-release.apk
 ```
 
+- 需要 **JDK 17**（`java -version` 应输出 17.x）。CI 里已经用 `actions/setup-java` 配好了。
+- 国内网络拉依赖慢或握手失败时，开阿里云镜像：
+
+```bash
+./gradlew assembleRelease -PuseCnMirror=true
+```
+
 - 加载的线上地址默认是 `https://nongzi.pages.dev`，三种覆盖方式：
   1. `./gradlew assembleRelease -PwebUrl=https://你的域名`
   2. 环境变量 `WEB_URL=https://你的域名`
@@ -163,7 +170,16 @@ Workers & Pages → Create → Pages → **Direct Upload**，把 `nongzi-site` �
 
 > 部署完把域名填回 `android/app/build.gradle`（或 CI 的 `webUrl` 参数），再跑一次 Actions 就能生成指向新地址的 APK。
 
-### 4. 生成二维码
+### 4. 让 APK 指向你的域名
+
+APK 默认加载 `https://nongzi.pages.dev`。拿到自己的域名后，二选一：
+
+- 在仓库 **Settings → Secrets and variables → Actions → Variables** 里新增变量 `WEB_URL`（例：`https://nongzi.pages.dev`），以后每次 push 自动用新地址打包；
+- 或在 Actions 里手动点 **Run workflow**，在 `webUrl` 输入框里填地址。
+
+每次产物都会是「站点 + 指向该站点的 APK」，H5 底部的「下载 App」按钮指向同一个 `app-release.apk`。
+
+### 5. 生成二维码
 
 把线上地址丢进 [草料二维码](https://cli.im/)，打印张贴到门店；农户扫码即可看商品、看用法、打电话。
 
@@ -179,6 +195,9 @@ Workers & Pages → Create → Pages → **Direct Upload**，把 `nongzi-site` �
 
 **APK 装到手机上打不开页面？**
 检查 `BuildConfig.WEB_URL` 是否可访问（明文 http 需要 `usesCleartextTraffic`，已默认开启）。
+
+**Gradle 报 TLS 握手失败 / 依赖下载不动？**
+国内网络优先用镜像：`./gradlew assembleRelease -PuseCnMirror=true`；CI 里则可以在 `WEB_URL` 旁边再加一个 `USE_CN_MIRROR` 变量并加上 `-PuseCnMirror=true`。
 
 ---
 

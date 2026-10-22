@@ -1,5 +1,13 @@
+// 可选：开启国内镜像（阿里云）加速依赖下载
+//   ./gradlew assembleRelease -PuseCnMirror=true
+// 默认走官方源（google / mavenCentral / gradlePluginPortal）。
 pluginManagement {
     repositories {
+        if (settings.hasProperty('useCnMirror')) {
+            maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+            maven { url 'https://maven.aliyun.com/repository/google' }
+            maven { url 'https://maven.aliyun.com/repository/public' }
+        }
         google()
         mavenCentral()
         gradlePluginPortal()
@@ -9,6 +17,10 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
     repositories {
+        if (settings.hasProperty('useCnMirror')) {
+            maven { url 'https://maven.aliyun.com/repository/google' }
+            maven { url 'https://maven.aliyun.com/repository/public' }
+        }
         google()
         mavenCentral()
     }

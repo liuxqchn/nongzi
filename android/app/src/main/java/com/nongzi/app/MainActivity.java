@@ -1,6 +1,7 @@
 package com.nongzi.app;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -21,9 +22,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.WindowCompat;
-
 /**
  * 极简 WebView 壳：
  * 1. 加载线上 H5（BuildConfig.WEB_URL，可用 -PwebUrl= 或 WEB_URL 覆盖）；
@@ -31,7 +29,7 @@ import androidx.core.view.WindowCompat;
  * 3. 硬件返回键优先回退网页历史，栈空时才退出；
  * 4. 允许明文流量（部分自建站点是 http://）。
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private static final String STATE_URL = "nongzi.state.url";
 
@@ -44,8 +42,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
 
         webView = findViewById(R.id.webView);
         progressBar = findViewById(R.id.progressBar);

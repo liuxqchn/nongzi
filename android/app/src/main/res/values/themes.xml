@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Nongzi" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="colorPrimary">@color/leaf_600</item>
-        <item name="colorPrimaryDark">@color/leaf_700</item>
-        <item name="colorAccent">@color/leaf_500</item>
+    <!-- 只用平台主题，不依赖 appcompat，保持零三方依赖 -->
+    <style name="Theme.Nongzi" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/leaf_600</item>
+        <item name="android:colorPrimaryDark">@color/leaf_700</item>
+        <item name="android:colorAccent">@color/leaf_500</item>
         <item name="android:windowBackground">@color/leaf_50</item>
         <item name="android:statusBarColor">@color/leaf_600</item>
         <item name="android:navigationBarColor">@color/leaf_50</item>
