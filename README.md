@@ -8,6 +8,16 @@
 
 ---
 
+## 界面预览
+
+| 商品网格 | 详情抽屉 | 微信引导 |
+| --- | --- | --- |
+| ![商品网格](screenshots/catalog-home.png) | ![商品详情](screenshots/product-detail.png) | ![微信引导](screenshots/wechat-guide.png) |
+
+![搜索排序](screenshots/catalog-search.png)
+
+---
+
 ## 目录结构
 
 ```text
