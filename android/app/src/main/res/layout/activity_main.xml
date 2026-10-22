@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/leaf_50">
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="3dp"
+        android:layout_gravity="top"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="@color/leaf_500"
+        android:progressBackgroundTint="@android:color/transparent" />
+
+    <LinearLayout
+        android:id="@+id/errorView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/error_title"
+            android:textColor="@color/leaf_900"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/errorText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:text="@string/error_hint"
+            android:textColor="@color/leaf_700"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/retryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:background="@color/leaf_600"
+            android:minWidth="120dp"
+            android:text="@string/retry"
+            android:textColor="@android:color/white" />
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,0 +1,36 @@
+# 依赖与构建产物
+node_modules/
+dist/
+.vite/
+*.local
+
+# 日志
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 编辑器 / 系统
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# 环境变量
+.env
+.env.*
+!.env.example
+
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/keystore.properties
+*.jks
+*.keystore
+
+# 打包好的 APK（体积大，按需放置到 web/public/ 后由 CI 产物提供）
+web/public/app-release.apk
+web/public/*.apk

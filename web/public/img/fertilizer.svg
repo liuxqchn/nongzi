@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="水溶肥">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fef3c7" />
+      <stop offset="1" stop-color="#fde68a" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" />
+  <g>
+    <path d="M140 96 h120 l18 26 v212 a18 18 0 0 1 -18 18 H140 a18 18 0 0 1 -18 -18 V122 Z" fill="#ffffff" opacity="0.95" />
+    <path d="M140 96 h120 l18 26 H122 Z" fill="#f59e0b" opacity="0.35" />
+    <rect x="148" y="168" width="104" height="84" rx="10" fill="#b45309" opacity="0.12" />
+    <rect x="162" y="188" width="76" height="12" rx="6" fill="#92400e" opacity="0.45" />
+    <rect x="162" y="212" width="52" height="10" rx="5" fill="#92400e" opacity="0.3" />
+    <g transform="translate(200 292)" opacity="0.8">
+      <path d="M0 -22 C14 -4 20 4 20 12 A20 20 0 0 1 -20 12 C-20 4 -14 -4 0 -22 Z" fill="#d97706" opacity="0.8" />
+    </g>
+  </g>
+</svg>

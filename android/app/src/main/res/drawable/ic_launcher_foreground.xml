@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 叶片 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,25 C71,32 83,45 83,61 C83,76 70,87 54,87 C38,87 25,76 25,61 C25,45 37,32 54,25 Z" />
+    <!-- 叶脉 -->
+    <path
+        android:strokeColor="#2B713C"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,30 C54,48 54,66 54,84" />
+</vector>

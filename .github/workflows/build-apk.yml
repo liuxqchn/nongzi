@@ -1,0 +1,100 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-web:
+    name: Build H5 site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+
+      - name: Build site
+        working-directory: web
+        run: npm run build
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nongzi-web
+          path: web/dist
+          if-no-files-found: error
+
+  build-apk:
+    name: Build release APK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Make gradlew executable
+        working-directory: android
+        run: chmod +x gradlew
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nongzi-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+  bundle:
+    name: Bundle site + APK
+    runs-on: ubuntu-latest
+    needs: [build-web, build-apk]
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nongzi-web
+          path: dist
+
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nongzi-release-apk
+          path: apk
+
+      - name: Put APK into site (H5 下载入口)
+        run: |
+          mkdir -p dist
+          cp apk/*.apk dist/app-release.apk
+          ls -lh dist
+
+      - name: Upload combined artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nongzi-site
+          path: dist
+          if-no-files-found: error

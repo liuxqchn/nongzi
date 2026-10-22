@@ -1,0 +1,23 @@
+{
+  "name": "nongzi-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test:search": "node scripts/test-fuzzy.mjs"
+  },
+  "dependencies": {
+    "@lucide/vue": "^1.61.0",
+    "pinyin-pro": "^3.29.5",
+    "vue": "^3.5.44"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "tailwindcss": "^4.3.3",
+    "vite": "^8.3.5"
+  }
+}

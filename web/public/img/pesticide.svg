@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="杀虫剂">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0f0e1" />
+      <stop offset="1" stop-color="#bfe1c2" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" />
+  <g>
+    <rect x="168" y="62" width="64" height="54" rx="10" fill="#245a32" />
+    <rect x="182" y="112" width="36" height="20" fill="#cfe7d2" />
+    <rect x="132" y="128" width="136" height="204" rx="24" fill="#ffffff" opacity="0.95" />
+    <rect x="152" y="196" width="96" height="76" rx="10" fill="#2b713c" opacity="0.12" />
+    <rect x="164" y="214" width="72" height="11" rx="5.5" fill="#245a32" opacity="0.45" />
+    <rect x="164" y="236" width="46" height="9" rx="4.5" fill="#245a32" opacity="0.28" />
+    <g transform="translate(200 158)" fill="none" stroke="#245a32" stroke-width="5" stroke-linecap="round" opacity="0.75">
+      <ellipse cx="0" cy="0" rx="13" ry="18" />
+      <path d="M-13 -6 L-27 -14 M-13 2 L-28 2 M-13 10 L-26 18" />
+      <path d="M13 -6 L27 -14 M13 2 L28 2 M13 10 L26 18" />
+      <path d="M0 -18 L0 -30 M0 -30 L-8 -38 M0 -30 L8 -38" />
+    </g>
+  </g>
+</svg>

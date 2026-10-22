@@ -1,0 +1,18 @@
+// 顶层构建脚本：只声明插件版本，具体配置在 app/build.gradle
+buildscript {
+    ext {
+        // 可在这里统一调整 Android Gradle Plugin / Kotlin 等插件版本
+        agpVersion = '8.5.2'
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$agpVersion"
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.layout.buildDirectory
+}

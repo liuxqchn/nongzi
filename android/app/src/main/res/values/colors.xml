@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="leaf_50">#F2F8F2</color>
+    <color name="leaf_500">#3A8C4B</color>
+    <color name="leaf_600">#2B713C</color>
+    <color name="leaf_700">#245A32</color>
+    <color name="leaf_900">#1A3C26</color>
+    <color name="ic_launcher_background">#2B713C</color>
+</resources>
