@@ -102,6 +102,21 @@ function toImages(value) {
     .filter(Boolean)
 }
 
+/**
+ * 补上部署基路径。
+ * 站点内图片写的是 /img/xxx.svg 这种根路径，部署到子路径（如 GitHub Pages 的 /仓库名/）
+ * 时会被解析到域名根目录而 404，这里统一拼上 BASE_URL。
+ */
+export function withBasePath(url) {
+  const value = String(url || '').trim()
+  if (!value) return ''
+  if (/^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(value)) return value
+  if (/^(?:data|blob):/i.test(value)) return value
+  if (!value.startsWith('/')) return value
+  const base = import.meta.env.BASE_URL || '/'
+  return `${base}${value.slice(1)}`.replace(/\/{2,}/g, '/')
+}
+
 function toList(value) {
   const text = toText(value)
   if (!text) return []
@@ -135,7 +150,7 @@ export function normalizeProduct(raw, index = 0) {
     spec: toText(raw.spec),
     price: price === null ? null : price,
     unit: toText(raw.unit),
-    images,
+    images: images.map(withBasePath),
     ingredients: toText(raw.ingredients),
     crops: toList(raw.crops),
     dilution: toText(raw.dilution),
