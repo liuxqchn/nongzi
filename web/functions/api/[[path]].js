@@ -26,6 +26,19 @@ const JSON_HEADERS = { 'Content-Type': 'application/json; charset=utf-8' }
 let tokenCache = { token: '', expiresAt: 0 }
 let recordCache = { payload: '', items: [], mediaTokens: new Set(), expiresAt: 0 }
 
+// 图片字节再在实例内存里存一份（Cache API 在某些部署形态下不生效/跨实例不复用），
+// 同一个实例短时间内重复请求就不用再跑一趟飞书。上限约 12MB。
+const MEDIA_MEMORY_LIMIT = 12 * 1024 * 1024
+let mediaMemorySize = 0
+const mediaMemory = new Map()
+
+function rememberMedia(file, entry) {
+  if (mediaMemory.has(file)) return
+  if (mediaMemorySize + entry.body.byteLength > MEDIA_MEMORY_LIMIT) return
+  mediaMemory.set(file, entry)
+  mediaMemorySize += entry.body.byteLength
+}
+
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: JSON_HEADERS })
 }
@@ -168,8 +181,20 @@ async function handleMedia({ request, env, waitUntil }) {
     return json({ error: '缺少或非法的 file 参数' }, 400)
   }
 
-  const cacheKey = new Request(`https://nongzi-media.internal/${file}`, { method: 'GET' })
+  // 三层缓存：实例内存 → Cache API（按真实请求地址做 key）→ 飞书
+  const memoryHit = mediaMemory.get(file)
+  if (memoryHit) {
+    return new Response(memoryHit.body, {
+      headers: {
+        'Content-Type': memoryHit.type,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    })
+  }
+
   const cache = typeof caches !== 'undefined' ? caches.default : null
+  const cacheKey = new Request(url.toString(), { method: 'GET' })
   if (cache) {
     const hit = await cache.match(cacheKey)
     if (hit) return hit
@@ -195,7 +220,10 @@ async function handleMedia({ request, env, waitUntil }) {
       return json({ error: `附件下载失败（HTTP ${upstream.status}）${detail.slice(0, 200)}` }, 502)
     }
 
-    const response = new Response(upstream.body, {
+    const body = await upstream.arrayBuffer()
+    rememberMedia(file, { body, type: contentType || 'application/octet-stream' })
+
+    const response = new Response(body, {
       headers: {
         'Content-Type': contentType || 'application/octet-stream',
         // file_token 变了就是另一张图，所以可以永久缓存
@@ -203,7 +231,7 @@ async function handleMedia({ request, env, waitUntil }) {
         'X-Content-Type-Options': 'nosniff',
       },
     })
-    if (cache && waitUntil) waitUntil(cache.put(cacheKey, response.clone()))
+    if (cache && waitUntil) waitUntil(cache.put(cacheKey, response.clone()).catch(() => {}))
     return response
   } catch (e) {
     return json({ error: e.message || '附件下载失败' }, 502)
