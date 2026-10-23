@@ -251,7 +251,16 @@ export async function fetchProxyProducts(
   const url = `${base}api/products`.replace(/\/{2,}/g, '/')
   const target = options.fresh ? `${url}?fresh=1` : url
 
-  const response = await fetch(target, { cache: 'no-cache' })
+  // Pages Function 偶尔会直接把复用中的连接掐掉（浏览器报 Failed to fetch），
+  // 单次抖动不该让页面降级成本地数据，所以网络层失败时重试一次。
+  const request = () => fetch(target, { cache: 'no-cache' })
+  let response
+  try {
+    response = await request()
+  } catch {
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    response = await request()
+  }
   if (response.status === 404 || response.status === 501) {
     return null
   }
