@@ -105,8 +105,10 @@ npm run test:search
 **改表格 = 改线上商品，刷新即生效，不用重新部署。** 数据链路：
 
 ```
-飞书多维表格 ──► /api/products（Pages Function，web/functions/api/products.js）
-              ──► H5 / Android 壳
+飞书多维表格 ─┬─► /api/products  商品字段（Pages Function，web/functions/api/\[\[path\]\].js）
+              └─► /api/media     图片附件（同源代理 + 边缘长期缓存）
+                        │
+                        └─► H5 / Android 壳
 ```
 
 为什么要有这一层：飞书开放平台不放行跨域（浏览器直连会被 OPTIONS 预检挡掉），而且 `app_secret`
@@ -117,7 +119,9 @@ npm run test:search
 
 - 建一个**企业自建应用** → 拿 `App ID` / `App Secret`；
 - 开通权限：`bitable:app:readonly`（读表）、`base:table:read`、`base:record:read`，
-  如需从代码/脚本改数据再加 `base:field:create`、`base:record:create`、`base:record:update`；
+  **`drive:drive:readonly`（下载「图片」列的附件）**，
+  如需从代码/脚本改数据再加 `base:field:create`、`base:record:create`、`base:record:update`，
+  要脚本上传图片再加 `drive:drive`；
 - 在「版本管理与发布」里创建版本并发布，**权限只有发布后才生效**；
 - 把这个应用**加为多维表格的协作者**（表格右上角「...」→ 添加文档协作者），否则接口返回 `1254302`。
 
@@ -148,6 +152,13 @@ npm run test:search
 
 > 想改数据：直接把链接发到飞书 App / 网页版，在表格里改单元格、加行删行都行。不要动表头文字
 > 和列名，否则得同步改 `web/src/services/productSource.js` 里的同义词表。
+
+**商品图片**：表格里的「图片」列是**附件**类型，点单元格把照片拖进去即可，卡片和详情页会自动显示第一张。
+飞书返回的附件地址需要 `Authorization` 头，浏览器 `<img>` 发不出去，所以页面用的是
+`/api/media?file=<file_token>`：由 Function 带凭证去飞书取图、直接回图片字节，并做
+`immutable` 长缓存（换一张图就是新的 `file_token`，所以能安全永久缓存）。
+只有表格里真实存在的 `file_token` 会被放行，无法拿它当任意文件下载器。
+卡片用 `loading="lazy"`，滑到才请求。**建议先把照片压到 500KB 以内再上传**（手机流量友好）。
 
 页面底部有「数据源」按钮，可以在浏览器里临时切到「本地 products.json」排查问题（存在 localStorage，
 和线上默认配置互不影响）。

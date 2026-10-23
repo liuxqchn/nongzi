@@ -70,6 +70,7 @@ onUnmounted(() => {
                 v-if="cover && !imageFailed.value"
                 :src="cover"
                 :alt="product.name"
+                decoding="async"
                 class="h-full w-full object-cover"
                 @error="imageFailed.value = true"
               />

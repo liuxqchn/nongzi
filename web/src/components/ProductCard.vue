@@ -10,6 +10,7 @@ const props = defineProps({
 const emit = defineEmits(['open', 'call'])
 
 const imageFailed = ref(false)
+const imageLoaded = ref(false)
 
 const meta = computed(() => categoryMeta(props.product.category))
 const cover = computed(() => props.product.images?.[0] || '')
@@ -29,12 +30,16 @@ function onImageError() {
       class="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br"
       :class="meta.image"
     >
+      <!-- 懒加载：图片来自飞书表格附件，由 /api/media 代理并做边缘缓存 -->
       <img
         v-if="showImage"
         :src="cover"
         :alt="product.name"
         loading="lazy"
-        class="h-full w-full object-cover"
+        decoding="async"
+        class="h-full w-full object-cover transition-opacity duration-300"
+        :class="imageLoaded ? 'opacity-100' : 'opacity-0'"
+        @load="imageLoaded = true"
         @error="onImageError"
       />
       <component :is="meta.icon" v-else class="h-12 w-12 text-leaf-700/40" />
