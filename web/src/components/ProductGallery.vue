@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { ChevronLeft, ChevronRight, Images, X } from '@lucide/vue'
 
 const props = defineProps({
@@ -49,9 +49,13 @@ function goToLightbox(target) {
   el.scrollTo({ left: target * el.clientWidth, behavior: 'smooth' })
 }
 
-function openLightbox() {
+async function openLightbox() {
   if (!usable(list.value[index.value])) return
   lightboxOpen.value = true
+  // 大图打开时要停在与小图相同的页码，否则总是在第一张
+  await nextTick()
+  const el = lightboxTrack.value
+  if (el) el.scrollLeft = index.value * el.clientWidth
 }
 
 function closeLightbox() {
