@@ -14,6 +14,7 @@ import { useToast } from './composables/useToast'
 import { useWechat } from './composables/useWechat'
 import { callPhone } from './utils/phone'
 import { readConfig } from './services/productSource'
+import { admin, setReporter, tapTitle as reportTitleTap } from './composables/useAdmin'
 
 const {
   loading,
@@ -32,6 +33,9 @@ const {
 
 const { message, show } = useToast()
 const { showGuide, dismiss } = useWechat()
+
+// 顾客看不到数据源入口，只有供应商用 ?manage=1 或连点标题才能打开
+setReporter((text) => show(text))
 
 const showSourceDialog = ref(false)
 const shopPhone = computed(() => readConfig().shop?.phone || '')
@@ -69,8 +73,10 @@ async function handleCall(product) {
     <AppHeader
       :source-label="sourceLabel"
       :loading="loading"
+      :admin="admin"
       @open-source="showSourceDialog = true"
       @reload="reload(true)"
+      @tap-title="reportTitleTap"
     />
 
     <SearchBar
@@ -100,6 +106,7 @@ async function handleCall(product) {
     <AppFooter
       :source-label="sourceLabel"
       :loading="loading"
+      :admin="admin"
       @open-source="showSourceDialog = true"
       @reload="reload(true)"
     />

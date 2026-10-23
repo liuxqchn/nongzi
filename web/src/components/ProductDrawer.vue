@@ -11,6 +11,7 @@ import {
   X,
 } from '@lucide/vue'
 import { categoryMeta } from '../utils/categoryTheme'
+import ProductGallery from './ProductGallery.vue'
 
 const props = defineProps({
   product: { type: Object, default: null },
@@ -20,8 +21,6 @@ const props = defineProps({
 const emit = defineEmits(['close', 'call'])
 
 const meta = computed(() => categoryMeta(props.product?.category))
-const imageFailed = { value: false }
-const cover = computed(() => props.product?.images?.[0] || '')
 
 const rows = computed(() => {
   const p = props.product
@@ -62,20 +61,11 @@ onUnmounted(() => {
         >
           <!-- 头部 -->
           <div class="relative shrink-0">
-            <div
-              class="flex h-40 items-center justify-center bg-gradient-to-br sm:h-44"
-              :class="meta.image"
-            >
-              <img
-                v-if="cover && !imageFailed.value"
-                :src="cover"
-                :alt="product.name"
-                decoding="async"
-                class="h-full w-full object-cover"
-                @error="imageFailed.value = true"
-              />
-              <component :is="meta.icon" v-else class="h-16 w-16 text-leaf-700/40" />
-            </div>
+            <ProductGallery
+              :images="product.images || []"
+              :alt="product.name"
+              :theme="meta"
+            />
 
             <button
               type="button"

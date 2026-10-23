@@ -215,12 +215,38 @@ export async function fetchBitable(config) {
   )
 }
 
+/**
+ * 收集一个商品的所有图片。
+ * 「图片」列优先；商户还会另外建「效果图」「案例图」「实拍图」之类的列，
+ * 只要列名带图/照片/案例且值是附件或链接，就一并收到同一个图集里（详情页轮播用）。
+ * 列顺序不固定，所以按一个固定优先级排序，「图片」永远是第一张（卡片封面）。
+ */
+const EXTRA_IMAGE_COLUMN = /图|照片|相片|实拍|案例|效果/
+
+function collectImages(fields, fieldMap) {
+  const primary = toImages(firstField(fields, fieldMap.images))
+  const extras = []
+  for (const name of Object.keys(fields)) {
+    if ((fieldMap.images || []).includes(name)) continue
+    if (!EXTRA_IMAGE_COLUMN.test(name)) continue
+    extras.push(...toImages(fields[name]))
+  }
+  const seen = new Set()
+  return [...primary, ...extras].filter((url) => {
+    if (!url || seen.has(url)) return false
+    seen.add(url)
+    return true
+  })
+}
+
 function readFields(fields, fieldMap) {
   const result = {}
   for (const [key, names] of Object.entries(fieldMap)) {
     const value = firstField(fields, names)
     if (value !== undefined) result[key] = value
   }
+  const images = collectImages(fields, fieldMap)
+  if (images.length) result.images = images
   return result
 }
 

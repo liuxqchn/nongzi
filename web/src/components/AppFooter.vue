@@ -5,6 +5,8 @@ import { Database, Download, RotateCw } from '@lucide/vue'
 defineProps({
   sourceLabel: { type: String, default: '' },
   loading: { type: Boolean, default: false },
+  // 数据源入口只给供应商看，顾客不需要也不应该看到
+  admin: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['open-source', 'reload'])
@@ -53,6 +55,7 @@ onMounted(async () => {
   <footer class="border-t border-leaf-100 bg-white/70 px-4 py-6 text-center">
     <div class="flex flex-wrap items-center justify-center gap-2">
       <button
+        v-if="admin"
         type="button"
         class="inline-flex items-center gap-1.5 rounded-full bg-leaf-50 px-3 py-1.5 text-xs font-medium text-leaf-700 ring-1 ring-leaf-100 active:bg-leaf-100"
         @click="emit('open-source')"

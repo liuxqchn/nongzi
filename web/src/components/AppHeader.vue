@@ -6,9 +6,11 @@ import { readConfig } from '../services/productSource'
 const props = defineProps({
   sourceLabel: { type: String, default: '' },
   loading: { type: Boolean, default: false },
+  // 供应商模式才显示数据源入口，顾客（农资店老板）看不到
+  admin: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['open-source', 'reload'])
+const emit = defineEmits(['open-source', 'reload', 'tap-title'])
 
 const config = readConfig()
 const shop = computed(() => config.shop || {})
@@ -37,7 +39,7 @@ onMounted(async () => {
         <Store class="h-6 w-6" />
       </div>
 
-      <div class="min-w-0 flex-1">
+      <div class="min-w-0 flex-1" @click="emit('tap-title')">
         <h1 class="truncate text-lg font-bold leading-tight">
           {{ shop.name || '农资商品目录' }}
         </h1>
@@ -57,9 +59,10 @@ onMounted(async () => {
       </a>
 
       <button
+        v-if="props.admin"
         type="button"
         class="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25 active:bg-white/25"
-        title="切换数据源"
+        title="切换数据源（管理入口）"
         @click="emit('open-source')"
       >
         <RefreshCw class="h-5 w-5" :class="props.loading ? 'animate-spin' : ''" />

@@ -2,6 +2,7 @@
 import { reactive, watch } from 'vue'
 import { Cloud, Database, HardDriveDownload, X } from '@lucide/vue'
 import { readConfig, saveConfig, clearStoredConfig } from '../services/productSource'
+import { admin, disable } from '../composables/useAdmin'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -212,6 +213,16 @@ function reset() {
           <Database class="mt-0.5 h-3 w-3 shrink-0" />
           默认数据来自站点的 products.json，可在 public/products.json 里直接编辑商品。
         </p>
+
+        <!-- 顾客是不该看到这个面板的，供应商用完可以随时关掉入口 -->
+        <button
+          v-if="admin"
+          type="button"
+          class="mt-3 w-full rounded-xl py-2 text-[11px] font-medium text-leaf-500 underline-offset-2 hover:underline"
+          @click="disable"
+        >
+          退出管理模式（顾客将看不到数据源按钮）
+        </button>
       </div>
     </div>
   </Teleport>

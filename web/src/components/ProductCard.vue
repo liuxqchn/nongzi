@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from 'vue'
-import { Phone } from '@lucide/vue'
+import { Images, Phone } from '@lucide/vue'
 import { categoryMeta } from '../utils/categoryTheme'
 
 const props = defineProps({
@@ -49,6 +49,15 @@ function onImageError() {
         :class="meta.chip"
       >
         {{ product.category }}
+      </span>
+
+      <!-- 图集张数：提示点开还能看效果图/案例图 -->
+      <span
+        v-if="showImage && product.images.length > 1"
+        class="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/45 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur"
+      >
+        <Images class="h-3 w-3" />
+        {{ product.images.length }}
       </span>
 
       <button
