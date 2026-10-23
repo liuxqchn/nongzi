@@ -224,6 +224,58 @@ function readFields(fields, fieldMap) {
   return result
 }
 
+/**
+ * 兼容两种返回：
+ * - 多维表格原始记录 { record_id, fields }
+ * - 已经拍平好的商品对象
+ */
+function normalizeRecord(item, index, fieldMap) {
+  if (item && typeof item === 'object' && item.fields && typeof item.fields === 'object') {
+    return normalizeProduct({ id: item.record_id, ...readFields(item.fields, fieldMap) }, index)
+  }
+  return normalizeProduct(item, index)
+}
+
+/**
+ * 走同源代理（/api/products）读商品。
+ * 飞书的 Open API 不放行跨域，浏览器不能直接调，所以默认由服务端代理转发，
+ * app_secret 留在 Cloudflare 环境变量里，不会暴露到前端。
+ *
+ * @returns {Promise<Array|null>} null 表示这个站点没部署该接口（例如 GitHub Pages 备用站）
+ */
+export async function fetchProxyProducts(
+  base = import.meta.env.BASE_URL || '/',
+  fieldMap = DEFAULT_FIELD_MAP,
+  options = {},
+) {
+  const url = `${base}api/products`.replace(/\/{2,}/g, '/')
+  const target = options.fresh ? `${url}?fresh=1` : url
+
+  const response = await fetch(target, { cache: 'no-cache' })
+  if (response.status === 404 || response.status === 501) {
+    return null
+  }
+  // 没部署接口的静态站（如 GitHub Pages 备用站）会把 index.html 当 200 返回，直接跳过
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('application/json')) {
+    return null
+  }
+  if (!response.ok) {
+    let detail = ''
+    try {
+      const payload = await response.json()
+      detail = payload.error || ''
+    } catch {
+      /* 拿不到 JSON 就只报状态码 */
+    }
+    throw new Error(`商品接口请求失败（HTTP ${response.status}）${detail ? '：' + detail : ''}`)
+  }
+
+  const payload = await response.json()
+  const items = Array.isArray(payload) ? payload : payload.items || payload.data || []
+  return items.map((item, index) => normalizeRecord(item, index, fieldMap))
+}
+
 /** 读取站点内置的 products.json */
 export async function fetchLocalProducts(base = import.meta.env.BASE_URL || '/') {
   const url = `${base}products.json`.replace(/\/{2,}/g, '/')
@@ -238,7 +290,7 @@ export async function fetchLocalProducts(base = import.meta.env.BASE_URL || '/')
  * 统一入口：按配置决定数据源，任何失败都会降级，最终一定返回可展示的数据。
  * @returns {Promise<{products: Array, source: string, warning: string}>}
  */
-export async function loadProducts() {
+export async function loadProducts(options = {}) {
   const config = readConfig()
   const base = import.meta.env.BASE_URL || '/'
   const warnings = []
@@ -247,7 +299,18 @@ export async function loadProducts() {
 
   const tryBitable = async () => {
     const bitable = config.bitable || {}
-    if (!bitable.enabled || !bitable.appToken || !bitable.tableId || !bitable.token) {
+    if (!bitable.enabled) return null
+
+    // 默认走同源代理：凭证在服务端，浏览器不接触 app_secret
+    if (bitable.proxy !== false) {
+      const list = await fetchProxyProducts(base, config.fieldMap, options)
+      if (!list) return null
+      if (!list.length) throw new Error('商品接口没有返回商品')
+      return list
+    }
+
+    // 浏览器直连飞书：需要自带令牌，且飞书要放行跨域
+    if (!bitable.appToken || !bitable.tableId || !bitable.token) {
       return null
     }
     const list = await fetchBitable({ ...bitable, fieldMap: config.fieldMap })

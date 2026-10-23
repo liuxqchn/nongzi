@@ -70,7 +70,7 @@ async function handleCall(product) {
       :source-label="sourceLabel"
       :loading="loading"
       @open-source="showSourceDialog = true"
-      @reload="reload"
+      @reload="reload(true)"
     />
 
     <SearchBar
@@ -101,7 +101,7 @@ async function handleCall(product) {
       :source-label="sourceLabel"
       :loading="loading"
       @open-source="showSourceDialog = true"
-      @reload="reload"
+      @reload="reload(true)"
     />
 
     <ProductDrawer

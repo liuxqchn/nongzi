@@ -15,7 +15,9 @@ window.__NONGZI_CONFIG__ = {
     phone: '',
   },
   bitable: {
-    enabled: false,
+    // 走服务端代理（同源 /api/products），飞书凭证只存在 Cloudflare 环境变量里
+    enabled: true,
+    proxy: true,
     appToken: '',
     tableId: '',
     token: '',

@@ -12,11 +12,14 @@ export function useCatalog() {
   const category = ref('全部')
   const detail = ref(null)
 
-  async function reload() {
+  /**
+   * @param {boolean} fresh true 时跳过服务端缓存（“重新加载商品”按钮用）
+   */
+  async function reload(fresh = false) {
     loading.value = true
     error.value = ''
     try {
-      const result = await loadProducts()
+      const result = await loadProducts({ fresh })
       products.value = result.products
       source.value = result.source
       error.value = result.warning || ''

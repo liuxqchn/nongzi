@@ -15,6 +15,7 @@ const form = reactive({
   tableId: '',
   token: '',
   enabled: false,
+  proxy: true,
 })
 
 watch(
@@ -27,6 +28,7 @@ watch(
     form.tableId = config.bitable?.tableId || ''
     form.token = config.bitable?.token || ''
     form.enabled = Boolean(config.bitable?.enabled)
+    form.proxy = config.bitable?.proxy !== false
   },
   { immediate: true },
 )
@@ -43,6 +45,7 @@ function apply() {
   config.bitable = {
     ...(config.bitable || {}),
     enabled: form.source === 'bitable' ? true : form.enabled,
+    proxy: form.proxy,
     appToken: form.appToken.trim(),
     tableId: form.tableId.trim(),
     token: form.token.trim(),
@@ -108,38 +111,81 @@ function reset() {
             飞书多维表格参数（只读）
           </p>
 
-          <label class="mt-3 block">
-            <span class="text-xs text-leaf-700">App Token</span>
-            <input
-              v-model="form.appToken"
-              type="text"
-              placeholder="bascn…（多维表格链接里的 app_token）"
-              class="mt-1 w-full rounded-xl border border-leaf-200 bg-white px-3 py-2 text-sm outline-none focus:border-leaf-400"
-            />
-          </label>
+          <div class="mt-3 space-y-2">
+            <label
+              class="flex cursor-pointer items-start gap-3 rounded-xl border border-leaf-100 bg-white p-3"
+            >
+              <input
+                v-model="form.proxy"
+                :value="true"
+                type="radio"
+                class="mt-1 h-4 w-4 accent-leaf-700"
+              />
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-leaf-900">服务端代理（推荐）</span>
+                <span class="block text-xs text-leaf-600">
+                  由站点的 /api/products 转发，凭证不暴露在浏览器里
+                </span>
+              </span>
+            </label>
 
-          <label class="mt-3 block">
-            <span class="text-xs text-leaf-700">Table ID</span>
-            <input
-              v-model="form.tableId"
-              type="text"
-              placeholder="tbl…（表名后面的那段）"
-              class="mt-1 w-full rounded-xl border border-leaf-200 bg-white px-3 py-2 text-sm outline-none focus:border-leaf-400"
-            />
-          </label>
+            <label
+              class="flex cursor-pointer items-start gap-3 rounded-xl border border-leaf-100 bg-white p-3"
+            >
+              <input
+                v-model="form.proxy"
+                :value="false"
+                type="radio"
+                class="mt-1 h-4 w-4 accent-leaf-700"
+              />
+              <span class="min-w-0">
+                <span class="block text-sm font-semibold text-leaf-900">浏览器直连</span>
+                <span class="block text-xs text-leaf-600">
+                  浏览器直接请求飞书，需要下方令牌，且飞书需放行跨域
+                </span>
+              </span>
+            </label>
+          </div>
 
-          <label class="mt-3 block">
-            <span class="text-xs text-leaf-700">访问令牌</span>
-            <input
-              v-model="form.token"
-              type="password"
-              placeholder="user_access_token / tenant_access_token"
-              class="mt-1 w-full rounded-xl border border-leaf-200 bg-white px-3 py-2 text-sm outline-none focus:border-leaf-400"
-            />
-          </label>
+          <template v-if="!form.proxy">
+            <label class="mt-3 block">
+              <span class="text-xs text-leaf-700">App Token</span>
+              <input
+                v-model="form.appToken"
+                type="text"
+                placeholder="bascn…（多维表格链接里的 app_token）"
+                class="mt-1 w-full rounded-xl border border-leaf-200 bg-white px-3 py-2 text-sm outline-none focus:border-leaf-400"
+              />
+            </label>
 
-          <p class="mt-3 text-[11px] leading-relaxed text-leaf-600">
-            令牌会保存在本机浏览器（localStorage），并直接发送给飞书开放接口，仅适合只读场景。
+            <label class="mt-3 block">
+              <span class="text-xs text-leaf-700">Table ID</span>
+              <input
+                v-model="form.tableId"
+                type="text"
+                placeholder="tbl…（表名后面的那段）"
+                class="mt-1 w-full rounded-xl border border-leaf-200 bg-white px-3 py-2 text-sm outline-none focus:border-leaf-400"
+              />
+            </label>
+
+            <label class="mt-3 block">
+              <span class="text-xs text-leaf-700">访问令牌</span>
+              <input
+                v-model="form.token"
+                type="password"
+                placeholder="user_access_token / tenant_access_token"
+                class="mt-1 w-full rounded-xl border border-leaf-200 bg-white px-3 py-2 text-sm outline-none focus:border-leaf-400"
+              />
+            </label>
+
+            <p class="mt-3 text-[11px] leading-relaxed text-leaf-600">
+              令牌会保存在本机浏览器（localStorage），并直接发送给飞书开放接口，仅适合只读场景。
+            </p>
+          </template>
+
+          <p v-else class="mt-3 text-[11px] leading-relaxed text-leaf-600">
+            代理模式下不需要在这里填任何参数：app_id / app_secret / 表格 ID 配在 Cloudflare Pages
+            的环境变量里，浏览器拿不到。
           </p>
         </div>
 

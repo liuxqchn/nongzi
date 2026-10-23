@@ -100,28 +100,57 @@ npm run test:search
 
 `category` 支持归一化：`杀虫/杀虫类/除虫 → 杀虫剂`，`杀菌/杀菌类/霜霉 → 杀菌剂`，`水溶肥料 → 水溶肥` 等。
 
-### 方式 B：飞书多维表格（Bitable）
+### 方式 B：飞书多维表格（Bitable）—— 当前线上在用
 
-编辑 `web/public/config.js`（部署后也能直接改，改完刷新即生效，不用重新打包）：
+**改表格 = 改线上商品，刷新即生效，不用重新部署。** 数据链路：
 
-```js
-window.__NONGZI_CONFIG__ = {
-  shop: { name: '农资商品目录', subtitle: '扫码看成分 · 查用法 · 一键问价', phone: '13800138000' },
-  bitable: {
-    enabled: true,
-    appToken: 'bascnXXXX',   // 多维表格链接里 app_token= 后面那段
-    tableId: 'tblXXXX',      // 表名后面 /tblXXXX 那段
-    token: 'u-xxxx',         // user_access_token / tenant_access_token（只读）
-  },
-  source: 'auto',            // auto | bitable | local
-}
+```
+飞书多维表格 ──► /api/products（Pages Function，web/functions/api/products.js）
+              ──► H5 / Android 壳
 ```
 
-表头名会按 `商品名称 / 品牌 / 分类 / 规格 / 价格 / 图片 / 成分 / 适用作物 / 稀释倍数 / 用法用量 / 注意事项 / 联系电话` 等同义名自动匹配。
+为什么要有这一层：飞书开放平台不放行跨域（浏览器直连会被 OPTIONS 预检挡掉），而且 `app_secret`
+绝不能进前端产物。Function 用服务端凭证换 `tenant_access_token`、按 `page_size=500` 翻页拉全表，
+把 `{ items, updatedAt }` 原样交给页面，前端再按同义词表把列名映射成商品字段。
 
-> 注意：token 会暴露在浏览器里，只适合内部只读场景；正式对外建议由后端代理。
+**1. 飞书侧**（一次性）：
 
-页面底部有「数据源」按钮，可以不改正文件直接在浏览器里临时切换数据源。
+- 建一个**企业自建应用** → 拿 `App ID` / `App Secret`；
+- 开通权限：`bitable:app:readonly`（读表）、`base:table:read`、`base:record:read`，
+  如需从代码/脚本改数据再加 `base:field:create`、`base:record:create`、`base:record:update`；
+- 在「版本管理与发布」里创建版本并发布，**权限只有发布后才生效**；
+- 把这个应用**加为多维表格的协作者**（表格右上角「...」→ 添加文档协作者），否则接口返回 `1254302`。
+
+**2. Cloudflare Pages 侧**：项目 `nongzi` → 设置 → **变量和密钥**，添加（建议选「加密」）：
+
+| 变量名 | 说明 |
+| --- | --- |
+| `FEISHU_APP_ID` | 自建应用 App ID |
+| `FEISHU_APP_SECRET` | 自建应用 App Secret（加密） |
+| `FEISHU_APP_TOKEN` | 多维表格链接里 `/base/` 后面那段 |
+| `FEISHU_TABLE_ID` | 链接 `?table=tbl...` 那段 |
+| `FEISHU_DOMAIN` | 可选，Lark 国际版填 `https://open.larksuite.com` |
+| `FEISHU_CACHE_TTL` | 可选，记录缓存秒数，默认 `30` |
+
+改完变量要重新部署一次才生效（推一次 commit 即可）。
+
+**3. 前端侧**：`web/public/config.js` 里 `bitable.enabled = true`、`bitable.proxy = true` 即可，
+不需要在浏览器里填任何凭证。表头按 `商品名称 / 品牌 / 分类 / 规格 / 价格 / 图片 / 成分 / 适用作物 /
+稀释倍数 / 用法用量 / 注意事项 / 联系电话` 等同义名自动匹配，`杀虫类 → 杀虫剂` 这类写法也会归一化。
+
+**行为细节**：
+
+- 表格内容默认缓存 30 秒（同一个 Function 实例内），刷新页面最多滞后半分钟；
+- 想立刻看到改动，点页面上的「重新加载商品」，它会带 `?fresh=1` 跳过缓存；
+- 接口挂掉/没配变量时会自动降级到 `products.json`，页面顶部会给出提示，不会白屏；
+- GitHub Pages 备用站没有 Functions，`/api/products` 会落到 `index.html`，前端识别到不是 JSON 后
+  同样降级到 `products.json`。
+
+> 想改数据：直接把链接发到飞书 App / 网页版，在表格里改单元格、加行删行都行。不要动表头文字
+> 和列名，否则得同步改 `web/src/services/productSource.js` 里的同义词表。
+
+页面底部有「数据源」按钮，可以在浏览器里临时切到「本地 products.json」排查问题（存在 localStorage，
+和线上默认配置互不影响）。
 
 ## 三、H5 里的一键拨号
 
