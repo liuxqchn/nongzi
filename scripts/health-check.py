@@ -15,10 +15,15 @@
 import json
 import pathlib
 import sys
+import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 
 KEEP_SNAPSHOTS = 30
+
+# Cloudflare 会直接 403 掉 urllib 默认的 `Python-urllib/3.x` UA（实测：同一条地址
+# curl 200、urllib 403），所以体检必须自带一个正常 UA，否则 CI 每天都误报。
+USER_AGENT = "nongzi-healthcheck/1.0 (+https://github.com/liuxqchn/nongzi)"
 
 
 _last_content_type = ""
@@ -27,9 +32,18 @@ _last_content_type = ""
 def fetch(site, path, timeout=30):
     global _last_content_type
     url = path if path.startswith("http") else site + path
-    with urllib.request.urlopen(url, timeout=timeout) as response:
-        _last_content_type = response.headers.get("content-type", "")
-        return response.status, _last_content_type, response.read()
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            _last_content_type = response.headers.get("content-type", "")
+            return response.status, _last_content_type, response.read()
+    except urllib.error.HTTPError as error:
+        hint = ""
+        if error.code == 403:
+            hint = "（403：多半是 User-Agent 又被 Cloudflare 挡了）"
+        sys.exit(f"{url} 返回 HTTP {error.code}{hint}")
+    except urllib.error.URLError as error:
+        sys.exit(f"{url} 连不上：{error.reason}")
 
 
 def first_media_path(items):
