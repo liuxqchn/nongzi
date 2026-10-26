@@ -1,0 +1,43 @@
+name: Daily health check & backup
+
+# 每天跑一次「线上能不能打开、接口有没有货、图片还能不能取、收录入口在不在」，
+# 顺手把商品表快照存进 backups/，飞书那边误删也有退路。
+# 任何一步失败 = workflow 变红 = GitHub 发邮件，这就是最便宜的监控。
+
+on:
+  schedule:
+    # UTC 01:15 = 北京时间 09:15，赶在门店开门前发现问题
+    - cron: '15 1 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Probe site and snapshot data
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Probe API, media and SEO routes
+        env:
+          # 仓库变量 WEB_URL 没设时用默认站点
+          SITE: ${{ vars.WEB_URL || 'https://nongzi.pages.dev' }}
+        run: python3 scripts/health-check.py "${SITE}"
+
+      - name: Commit snapshot
+        run: |
+          if git diff --quiet -- backups; then
+            echo "数据没有变化，不提交"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add backups
+          git commit -m "chore: 每日商品快照 $(date -u +%F)"
+          git push

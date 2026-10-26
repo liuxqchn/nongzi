@@ -6,6 +6,7 @@ import {
   Droplets,
   FlaskConical,
   Phone,
+  Share2,
   Sprout,
   Tag,
   X,
@@ -18,7 +19,7 @@ const props = defineProps({
   shopPhone: { type: String, default: '' },
 })
 
-const emit = defineEmits(['close', 'call'])
+const emit = defineEmits(['close', 'call', 'share'])
 
 const meta = computed(() => categoryMeta(props.product?.category))
 
@@ -66,6 +67,15 @@ onUnmounted(() => {
               :alt="product.name"
               :theme="meta"
             />
+
+            <button
+              type="button"
+              class="absolute right-14 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-leaf-800 shadow"
+              title="复制这个商品的链接"
+              @click="emit('share', product)"
+            >
+              <Share2 class="h-4 w-4" />
+            </button>
 
             <button
               type="button"

@@ -8,7 +8,35 @@
     />
     <meta name="theme-color" content="#2b713c" />
     <meta name="format-detection" content="telephone=yes" />
-    <meta name="description" content="农资商品目录：杀菌剂 / 杀虫剂 / 水溶肥 / 叶面肥，扫码即可查看成分、适用作物与用法用量，一键拨打老板电话。" />
+    <!--
+      og 标签占位：/p/<id> 这个 Function 会在返回 HTML 前把整块替换成商品专属的
+      标题、描述和实物图，这样链接发到微信群才有卡片，搜索引擎也能读到内容。
+    -->
+    <!-- og:start -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="农资商品目录" />
+    <meta property="og:title" content="农资商品目录 · 扫码看成分 · 查用法 · 一键问价" />
+    <meta
+      property="og:description"
+      content="杀菌剂 / 杀虫剂 / 水溶肥 / 叶面肥，扫码即可查看成分、适用作物与用法用量，一键拨打老板电话。"
+    />
+    <meta property="og:image" content="https://nongzi.pages.dev/og-cover.jpg" />
+    <meta property="og:url" content="https://nongzi.pages.dev/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="农资商品目录 · 扫码看成分 · 查用法 · 一键问价" />
+    <meta
+      name="twitter:description"
+      content="杀菌剂 / 杀虫剂 / 水溶肥 / 叶面肥，扫码即可查看成分、适用作物与用法用量，一键拨打老板电话。"
+    />
+    <meta name="twitter:image" content="https://nongzi.pages.dev/og-cover.jpg" />
+    <meta
+      name="description"
+      content="农资商品目录：杀菌剂 / 杀虫剂 / 水溶肥 / 叶面肥，扫码即可查看成分、适用作物与用法用量，一键拨打老板电话。"
+    />
+    <link rel="canonical" href="https://nongzi.pages.dev/" />
+    <!-- og:end -->
+    <!-- 结构化数据占位，由 /p/<id> 注入 Product 的 JSON-LD -->
+    <!-- jsonld -->
     <title>农资商品目录</title>
     <!-- 相对路径：子路径部署（如 GitHub Pages 的 /仓库名/）下也能正确取到图标 -->
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
@@ -17,6 +45,12 @@
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <div style="padding: 24px; font-family: system-ui, sans-serif; line-height: 1.7">
+        <h1 style="font-size: 18px">农资商品目录</h1>
+        <p>本页面需要开启 JavaScript。请用手机浏览器打开，或直接联系店主询价。</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

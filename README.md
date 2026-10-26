@@ -6,6 +6,9 @@
 - **一仓库两产物**：`web/` 是 H5，`android/` 是套壳 App，GitHub Actions 云端自动编译 APK。
 - **数据可换**：默认读 `web/public/products.json`，也支持从飞书多维表格（Bitable）只读拉取，拉不到时自动降级到内置示例数据。
 
+> 想换个行业再搭一套、或者想知道飞书 / Cloudflare / GitHub 上每一步手动怎么点，看
+> **[docs/PLAYBOOK.md](docs/PLAYBOOK.md)**（实施时间线、改造清单、手动配置步骤、排错对照表）。
+
 ---
 
 ## 界面预览
@@ -27,20 +30,29 @@
 ```text
 .
 ├── web/                        # 前端工程（Vite + Vue 3 + Tailwind CSS）
-│   ├── public/                 # 静态资源：products.json、config.js、app-release.apk
+│   ├── public/                 # 静态资源：products.json、config.js、og-cover.jpg、app-release.apk
+│   ├── functions/              # Cloudflare Pages Functions（同源后端）
+│   │   ├── _lib/               # 公共层：飞书访问、字段白名单、分享卡片 meta
+│   │   ├── api/[[path]].js     # /api/products、/api/media
+│   │   ├── p/[id].js           # 商品分享页 /p/<record_id>（注入 og 卡片）
+│   │   ├── sitemap.xml.js      # 动态站点地图
+│   │   └── robots.txt.js       # 动态 robots（带 sitemap 地址）
 │   ├── src/
-│   │   ├── components/         # 网格 / 详情抽屉 / 搜索 / 分类 / 微信引导 / Toast
-│   │   ├── composables/        # useCatalog（数据+筛选）、useWechat、useToast
+│   │   ├── components/         # 网格 / 详情抽屉 / 图片轮播 / 搜索 / 分类 / 微信引导 / Toast
+│   │   ├── composables/        # useCatalog（数据+筛选）、useAdmin、useWechat、useToast
 │   │   ├── data/               # 分类字典、示例数据
 │   │   ├── services/           # 数据源：products.json / 飞书 Bitable / Mock
 │   │   └── utils/              # 拼音模糊搜索、拨号、分类配色
 │   └── vite.config.js
+├── scripts/health-check.py     # 每日体检 + 商品快照（CI 与本地通用）
+├── backups/                    # 每天一份商品快照，保留 30 天
 ├── android/                    # 极简 Android 壳（Gradle + Java WebView）
 │   ├── app/src/main/AndroidManifest.xml
 │   ├── app/src/main/java/com/nongzi/app/MainActivity.java
 │   └── build.gradle
 └── .github/workflows/
     ├── build-apk.yml           # 云端编译 APK + 打包 H5 产物
+    ├── health.yml              # 每天体检 + 备份表格快照
     └── deploy-pages.yml        # 可选：一键发布到 GitHub Pages
 ```
 
@@ -151,6 +163,8 @@ npm run test:search
 | `FEISHU_TABLE_ID` | 链接 `?table=tbl...` 那段 |
 | `FEISHU_DOMAIN` | 可选，Lark 国际版填 `https://open.larksuite.com` |
 | `FEISHU_CACHE_TTL` | 可选，记录缓存秒数，默认 `30` |
+| `FEISHU_REV` | 可选，附件下载的 `extra.bitablePerm.rev`，一般留空（按 `0`） |
+| `FEISHU_HIDDEN_FIELDS` | 可选，逗号分隔的「不对外」列名。**填了就完全按你列的来**，内置黑名单（成本/进价/利润/备注…）不再生效 |
 
 改完变量要重新部署一次才生效（推一次 commit 即可）。
 
@@ -179,6 +193,36 @@ npm run test:search
 `immutable` 长缓存（换一张图就是新的 `file_token`，所以能安全永久缓存）。
 只有表格里真实存在的 `file_token` 会被放行，无法拿它当任意文件下载器。
 卡片用 `loading="lazy"`，滑到才请求。**建议先把照片压到 500KB 以内再上传**（手机流量友好）。
+
+### 内部列不会外发（字段白名单）
+
+表格里加「进货价 / 成本 / 毛利 / 备注 / 供应商」这类列，顾客**看不到**：`/api/products` 在服务端就把这些列丢掉了（默认按关键词匹配，见 `web/functions/_lib/feishu.js`）。
+需要的列名不在默认黑名单里，用 `FEISHU_HIDDEN_FIELDS` 精确指定，例：`FEISHU_HIDDEN_FIELDS=底价,供货商,到期日`。
+注意：**一旦设置这个变量，默认黑名单就不再生效**，成本类列记得自己加进去。
+
+### 分享卡片与搜索收录
+
+每个商品有自己的地址：`https://站点/p/<record_id>`。打开详情时地址栏会自动变成它，抽屉右上角 ↗ 按钮一键复制。
+
+- 发到微信群/朋友圈，卡片会显示**商品名 + 实物图 + 品牌规格**，而不是一行网址；
+- 商品页由 `web/functions/p/[id].js` 在服务端注入 `og:` 标签和 `Product` 结构化数据（JSON-LD），搜索引擎不跑 JS 也读得到；
+- `/sitemap.xml` 实时列出全部商品页，`/robots.txt` 指向它，所以表格加商品后不用重新部署就能被收录；
+- 默认分享封面是 `web/public/og-cover.jpg`（1200×630），想换就替换这张图；站点名称在 `web/functions/_lib/meta.js` 的 `SHOP_NAME`。
+
+### 每天自动体检 + 备份
+
+`.github/workflows/health.yml` 每天北京时间 09:15 跑一次 `scripts/health-check.py`：
+
+1. `/api/products` 有没有货、每条记录有没有 `record_id`；
+2. 表格里第一张图能不能通过 `/api/media` 真取到字节（不是 401/404 的错误页）；
+3. `robots.txt` / `sitemap.xml` 是否正常；
+4. 通过后把整表存成 `backups/YYYY-MM-DD.json`，只留最近 30 天。
+
+任何一步失败 → Actions 变红 → GitHub 发邮件，这就是零成本的监控。想本地手动跑：
+
+```bash
+python3 scripts/health-check.py https://nongzi.pages.dev
+```
 
 ### 管理入口默认隐藏
 

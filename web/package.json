@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test:search": "node scripts/test-fuzzy.mjs"
+    "test:search": "node scripts/test-fuzzy.mjs",
+    "test:meta": "node scripts/test-meta.mjs",
+    "test": "npm run test:search && npm run test:meta"
   },
   "dependencies": {
     "@lucide/vue": "^1.61.0",
